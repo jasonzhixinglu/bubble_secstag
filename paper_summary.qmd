@@ -39,7 +39,7 @@ permanently depresses the natural rate of interest below zero,
 trapping the economy at the zero lower bound. Lu (2015) extends
 this framework to show that a rational asset price bubble can
 restore the natural rate, raise output, and re-anchor inflation —
-but at the risk of unsustainability.
+but at the risk of economic instability.
 
 ## Model
 
