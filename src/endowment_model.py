@@ -178,32 +178,40 @@ def natural_rate(
 def bubble_upper_bound(Y_m: float, D: float, beta: float) -> float:
     """Return the maximum sustainable bubble size per capita.
 
-    A bubble can exist in equilibrium only if it does not violate the
-    middle-aged household's budget constraint.  The upper bound is
-    derived from the condition that loan supply remains non-negative
-    at r = g (the golden-rule interest rate).
+    A bubble can exist in equilibrium only if it does not absorb more
+    saving than the loan-market surplus at the golden-rule rate r = g.
+    The upper bound is found by setting loan supply equal to loan demand
+    at r = g and solving for A_max.
 
     Parameters
     ----------
     Y_m : float
         Middle-aged endowment income.
     D : float
-        Collateral limit (same period, i.e. D_prev = D in steady state).
+        Collateral limit (steady state: D_prev = D).
     beta : float
         Household discount factor.
 
     Returns
     -------
     float
-        Maximum bubble size A_max >= 0.
+        Maximum bubble size A_max.  Non-positive means no bubble can exist.
 
     Notes
     -----
-    Lu (2015), Proposition 1:
+    At r = g, loan demand is L^d = (1+g)/(1+g) * D = D, and loan supply
+    (with Y_o = 0) is L^s = beta/(1+beta) * (Y_m - D).  Setting
+    A_max = L^s - L^d:
 
-        A_max = (beta * Y_m - (2 + beta) * D) / (1 + beta)
+        A_max = beta/(1+beta) * (Y_m - D) - D
+              = (beta * Y_m - (1 + 2*beta) * D) / (1 + beta)
+
+    Note: an earlier version of this code used the formula
+    (beta*Y_m - (2+beta)*D)/(1+beta) attributed to Lu (2015) Proposition 1.
+    That formula is incorrect; the coefficient on D should be (1+2*beta),
+    not (2+beta).  The two coincide only when beta = 1.
     """
-    return (beta * Y_m - (2.0 + beta) * D) / (1.0 + beta)
+    return (beta * Y_m - (1.0 + 2.0 * beta) * D) / (1.0 + beta)
 
 
 def is_bubble_sustainable(
@@ -215,7 +223,7 @@ def is_bubble_sustainable(
     """Return True if the given bubble size is sustainable in equilibrium.
 
     A bubble is sustainable when it is non-negative and does not exceed
-    the upper bound derived in Lu (2015) Proposition 1.
+    the upper bound from :func:`bubble_upper_bound` (corrected formula).
 
     Parameters
     ----------
@@ -246,8 +254,8 @@ def fundamental_rate(
     """Return the natural rate in the fundamental economy (no bubble).
 
     Convenience wrapper around natural_rate with A_bubble=0 and
-    D_prev=D (steady state).  This is r^f in Lu (2015) Proposition 1,
-    the threshold below which bubbles can exist in equilibrium.
+    D_prev=D (steady state).  This is r^f, the threshold below which
+    bubbles can exist in equilibrium (r^f < g required).
 
     Parameters
     ----------
