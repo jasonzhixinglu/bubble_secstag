@@ -1,0 +1,306 @@
+---
+title: "Bubbles in a Secular Stagnation Economy"
+subtitle: "A succinct replication of Lu (2015) extending Eggertsson & Mehrotra (2014)"
+author: "Replication notebook"
+format:
+  html:
+    self-contained: true
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    theme: cosmo
+    math: mathjax
+jupyter: python3
+---
+
+## Setup
+```{python}
+#| echo: false
+#| output: false
+import sys
+sys.path.insert(0, 'src')
+import numpy as np
+import matplotlib.pyplot as plt
+from calibration import *
+from endowment_model import *
+from production_model import *
+from stability import *
+plt.rcParams['figure.dpi'] = 120
+plt.rcParams['axes.grid'] = True
+plt.rcParams['grid.alpha'] = 0.3
+```
+
+## Introduction
+
+Eggertsson & Mehrotra (2014) construct a three-period overlapping
+generations model in which a tightening of borrowing constraints
+permanently depresses the natural rate of interest below zero,
+trapping the economy at the zero lower bound. Lu (2015) extends
+this framework to show that a rational asset price bubble can
+restore the natural rate, raise output, and re-anchor inflation —
+but only if the bubble is small enough to remain sustainable.
+
+## Model
+
+### Households
+
+Three generations coexist each period: young ($y$), middle-aged
+($m$), and old ($o$). The young borrow up to a collateral limit
+$D$ against future middle-aged income $Y_m$. The middle-aged save.
+The old dissave. Market clearing in the loan market requires:
+
+$$
+D = \frac{\beta(Y_m - D)}{1 + r^f}
+$$
+
+Solving for the natural rate:
+
+$$
+1 + r^f = \frac{\beta(Y_m - D)}{D}
+$$
+
+### Bubble sustainability
+
+A rational bubble of size $A$ is sustainable if and only if it
+does not exceed the saving capacity of the middle-aged net of
+debt repayment:
+
+$$
+0 \leq A \leq \bar{A}, \qquad
+\bar{A} = \frac{\beta Y_m - (1+2\beta)D}{1+\beta}
+$$
+
+Note: the numerator uses $(1+2\beta)$, not $(2+\beta)$ as
+misprinted in some versions of Lu (2015). This correction is
+derived from the full loan market clearing condition with bubble.
+
+### Production side
+
+Output is determined by a standard New Keynesian AS/AD system.
+At the ZLB the nominal rate is fixed at $i = 0$; the Taylor rule
+is suspended and inflation falls below target.
+
+**AS curve:**
+$$
+\pi_t = \kappa(Y_t - Y^f) + \beta \pi_{t+1}
+$$
+
+**AD curve (ZLB):**
+$$
+Y_t = Y_{t+1} - \sigma(i_t - \pi_{t+1} - r^n)
+$$
+
+## Secular Stagnation
+
+### The collateral shock
+
+A tightening of the borrowing constraint from $D_H$ to $D_L$
+permanently reduces the natural rate. With EM (2014) Table 1
+parameters:
+```{python}
+#| echo: false
+Y_m = 1.0
+D_H = D       # from calibration import *: D = 0.28
+D_L = D_L     # D_L = 0.259
+
+r_H = fundamental_rate(D_H, G, Y_m, Y_O, BETA) - 1
+r_L = fundamental_rate(D_L, G, Y_m, Y_O, BETA) - 1
+print(f"Natural rate at D_H = {D_H}: r^f = {r_H:.4f} ({r_H*100:.2f}%)")
+print(f"Natural rate at D_L = {D_L}: r^f = {r_L:.4f} ({r_L*100:.2f}%)")
+print(f"ZLB binds at D_L: {r_L < 0}")
+```
+
+**Proposition 1 (Eggertsson & Mehrotra 2014).** If $r^f(D_L) < 0$
+the ZLB binds, monetary policy cannot restore full employment,
+and the economy settles at $Y < Y^f$ with $\pi < \pi^*$.
+```{python}
+#| echo: false
+#| fig-cap: "AS/AD equilibrium: normal regime (D_H) vs secular stagnation (D_L)"
+Y_f = potential_output(L_BAR, ALPHA)
+PI_GRID = np.linspace(0.80, 1.25, 500)
+AS_vals = aggregate_supply(PI_GRID, Y_f, GAMMA, ALPHA)
+AD_H    = aggregate_demand(PI_GRID, D_H, G, BETA, PHI_PI, PI_STAR, I_STAR)
+AD_L    = aggregate_demand(PI_GRID, D_L, G, BETA, PHI_PI, PI_STAR, I_STAR)
+eq_H    = find_equilibrium(D_H, G, BETA, PHI_PI, PI_STAR, I_STAR, GAMMA, ALPHA, L_BAR)
+eq_L    = find_equilibrium(D_L, G, BETA, PHI_PI, PI_STAR, I_STAR, GAMMA, ALPHA, L_BAR)
+PI_K    = pi_kink(I_STAR, PHI_PI, PI_STAR)
+
+fig, axes = plt.subplots(1, 2, figsize=(11, 4))
+
+for ax, AD, eq, d_label, color in [
+    (axes[0], AD_H, eq_H, f'$D_H={D_H}$ (normal)', 'darkorange'),
+    (axes[1], AD_L, eq_L, f'$D_L={D_L}$ (stagnation)', 'firebrick'),
+]:
+    mask_def  = PI_GRID < 1.0
+    mask_norm = PI_GRID >= 1.0
+    mask_zlb  = PI_GRID < PI_K
+    mask_tr   = PI_GRID >= PI_K
+    ax.plot(AS_vals[mask_def],  PI_GRID[mask_def],  color='steelblue', lw=2)
+    ax.plot(AS_vals[mask_norm], PI_GRID[mask_norm], color='steelblue', lw=2, ls='--')
+    ax.plot(AD[mask_zlb],  PI_GRID[mask_zlb],  color=color, lw=2, ls=':')
+    ax.plot(AD[mask_tr],   PI_GRID[mask_tr],   color=color, lw=2, label=f'AD {d_label}')
+    ax.scatter([eq['Y']], [eq['Pi']], color=color, zorder=5, s=70)
+    ax.axvline(Y_f,  color='grey', lw=0.8, ls='-.', label=f'$Y^f={Y_f}$')
+    ax.axhline(PI_K, color='grey', lw=0.7, ls=':', alpha=0.6)
+    ax.set_xlim(0.80, 1.15); ax.set_ylim(0.80, 1.25)
+    ax.set_xlabel('Output $Y$'); ax.set_ylabel('Gross inflation $\\Pi$')
+    ax.set_title(f'Equilibrium: {d_label}')
+    ax.legend(fontsize=8)
+
+plt.tight_layout()
+plt.show()
+```
+
+## Bubble Restoration
+
+### Proposition 2 (Lu 2015)
+
+A bubble $A \in (0, \bar{A}]$ raises the natural rate by absorbing
+excess saving. At $A = \bar{A}$ the natural rate is exactly zero
+and full employment is restored:
+
+$$
+Y\big|_{A=\bar{A}} = Y^f = 1, \qquad \pi\big|_{A=\bar{A}} = \pi^*
+$$
+```{python}
+#| echo: false
+A_max = bubble_upper_bound(Y_m, D_L, BETA)
+print(f"A_max at D_L = {D_L}: {A_max:.4f}")
+print(f"A_max/2 = {A_max/2:.4f}")
+```
+```{python}
+#| echo: false
+#| fig-cap: "Bubble effect on AS/AD (Lu 2015 Figure 3)"
+bubble_cases = [
+    (0.0,       'firebrick',   'B', '$A=0$'),
+    (A_max/2,   'forestgreen', 'C*', r'$A=\bar{A}/2$'),
+    (A_max,     'mediumpurple','C',  r'$A=\bar{A}$'),
+]
+PI_ZLB    = np.linspace(GAMMA + 0.001, 1.05, 400)
+PI_TAYLOR = np.linspace(PI_K, 1.25, 300)
+coeff_zlb = (1 + BETA) / BETA
+
+fig, ax = plt.subplots(figsize=(7, 5))
+AS_def    = aggregate_supply(PI_ZLB[PI_ZLB < 1.0],   Y_f, GAMMA, ALPHA)
+AS_taylor = aggregate_supply(PI_TAYLOR, Y_f, GAMMA, ALPHA)
+ax.plot(AS_def,    PI_ZLB[PI_ZLB < 1.0], color='steelblue', lw=2, label='AS')
+ax.plot(AS_taylor, PI_TAYLOR,             color='steelblue', lw=2, ls='--')
+AD_tr_shared = aggregate_demand(PI_TAYLOR, D_L, G, BETA, PHI_PI, PI_STAR, I_STAR)
+ax.plot(AD_tr_shared, PI_TAYLOR, color='dimgrey', lw=2, label='AD (Taylor, all $A$)')
+for A, color, pt, label in bubble_cases:
+    AD_zlb = D_L + coeff_zlb * (1 + G) * D_L * PI_ZLB + coeff_zlb * A
+    ax.plot(AD_zlb, PI_ZLB, color=color, lw=2, ls=':', label=f'AD ZLB {label}')
+    eq_b = find_equilibrium(D_L, G, BETA, PHI_PI, PI_STAR, I_STAR,
+                            GAMMA, ALPHA, L_BAR, A_bubble=A)
+    ax.scatter([eq_b['Y']], [eq_b['Pi']], color=color, zorder=5, s=70)
+ax.axvline(Y_f, color='grey', lw=0.8, ls='-.', label=f'$Y^f={Y_f}$')
+ax.axhline(PI_K, color='grey', lw=0.7, ls=':', alpha=0.6)
+ax.set_xlim(0.80, 1.15); ax.set_ylim(0.80, 1.25)
+ax.set_xlabel('Output $Y$'); ax.set_ylabel('Gross inflation $\\Pi$')
+ax.set_title('Bubble Shifts AD Rightward — $D = D_L$')
+ax.legend(fontsize=8)
+plt.tight_layout()
+plt.show()
+```
+
+## Stability and Policy
+
+### Critical shock thresholds
+
+The bubble is fragile. A sufficiently large adverse shock to $D$
+or $Y_m$ causes the bubble to violate the sustainability condition,
+forcing $A \to 0$ and collapsing output back to the stagnation
+equilibrium.
+```{python}
+#| echo: false
+#| fig-cap: "Critical shock thresholds (Lu 2015 Section 4)"
+A_TEST = A_max / 2
+D_fine = np.linspace(0.15, 0.40, 1000)
+marg_D = np.array([stability_margin(A_TEST, Y_m, d, BETA, Y_O, g=G) for d in D_fine])
+D_zero = D_fine[np.where(marg_D >= 0)[0][-1]]
+Y_fine = np.linspace(0.60, 1.40, 1000)
+marg_Y = np.array([stability_margin(A_TEST, y, D_L, BETA, Y_O, g=G) for y in Y_fine])
+Y_zero = Y_fine[np.where(marg_Y >= 0)[0][0]]
+
+D_plot = np.linspace(0.22, 0.32, 300)
+Y_plot = np.linspace(0.80, 1.15, 300)
+mD = np.array([stability_margin(A_TEST, Y_m, d, BETA, Y_O, g=G) for d in D_plot])
+mY = np.array([stability_margin(A_TEST, y, D_L, BETA, Y_O, g=G) for y in Y_plot])
+m_DL = stability_margin(A_TEST, Y_m, D_L, BETA, Y_O, g=G)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4))
+ax1.plot(D_plot, mD, color='steelblue', lw=2)
+ax1.axhline(0, color='firebrick', lw=1.2, ls='--', label='Collapse')
+ax1.axvline(D_zero, color='darkorange', lw=1.5, ls='--', label=f'$D_{{crit}}={D_zero:.3f}$')
+ax1.axvline(D_L, color='dimgrey', lw=1.0, ls=':', label=f'$D_L={D_L}$')
+ax1.scatter([D_zero], [0.0], color='firebrick', zorder=5, s=70)
+ax1.annotate('current $D_L$', xy=(D_L, m_DL*0.5),
+             xytext=(D_L - 0.025, m_DL*0.15), fontsize=8, color='dimgrey',
+             arrowprops=dict(arrowstyle='->', color='dimgrey'))
+ax1.set_xlim(0.22, 0.32); ax1.set_xlabel('Collateral $D$')
+ax1.set_ylabel('Stability margin'); ax1.set_title(f'Stability vs $D$  ($A=\\bar{{A}}/2$)')
+ax1.legend(fontsize=8)
+ax2.plot(Y_plot, mY, color='steelblue', lw=2)
+ax2.axhline(0, color='firebrick', lw=1.2, ls='--', label='Collapse')
+ax2.axvline(Y_zero, color='darkorange', lw=1.2, ls='--', label=f'$Y_{{crit}}={Y_zero:.3f}$')
+ax2.axvline(Y_m, color='grey', lw=1.0, ls=':', label=f'$Y_m={Y_m}$')
+ax2.scatter([Y_zero], [0.0], color='firebrick', zorder=5, s=70)
+ax2.set_xlim(0.80, 1.15); ax2.set_xlabel('Middle-aged income $Y_m$')
+ax2.set_ylabel('Stability margin'); ax2.set_title(f'Stability vs $Y_m$  ($A=\\bar{{A}}/2$)')
+ax2.legend(fontsize=8)
+plt.tight_layout()
+plt.show()
+```
+
+### PAYG transfer as alternative
+
+A pay-as-you-go transfer $\tau$ from middle-aged to old can also
+raise the natural rate, but requires a larger intervention than
+a bubble of equivalent size to achieve the same output effect.
+
+### Monetary policy ineffectiveness
+
+At the ZLB, the central bank cannot restore output by raising its
+inflation target $\pi^*$. Both $Y$ and $\pi$ are pinned by the
+structural equilibrium, not by the policy rule.
+```{python}
+#| echo: false
+#| fig-cap: "Monetary policy ineffectiveness at ZLB (Lu 2015 Section 4)"
+PI_TARGETS = np.linspace(1.00, 1.06, 20)
+Y_eq  = np.array([find_equilibrium(D_L, G, BETA, PHI_PI, p, I_STAR,
+                                    GAMMA, ALPHA, L_BAR)['Y'] for p in PI_TARGETS])
+Pi_eq = np.array([find_equilibrium(D_L, G, BETA, PHI_PI, p, I_STAR,
+                                    GAMMA, ALPHA, L_BAR)['Pi'] for p in PI_TARGETS])
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4))
+ax1.plot(PI_TARGETS, Y_eq, color='steelblue', lw=2, marker='o', ms=4)
+ax1.axhline(Y_f, color='grey', lw=0.9, ls='-.', label=f'$Y^f={Y_f}$')
+ax1.set_ylim(0.88, 1.05)
+ax1.set_xlabel('Inflation target $\\Pi^*$'); ax1.set_ylabel('Equilibrium $Y$')
+ax1.set_title('Output — flat at ZLB'); ax1.legend(fontsize=8)
+ax2.plot(PI_TARGETS, Pi_eq, color='darkorange', lw=2, marker='o', ms=4)
+ax2.plot(PI_TARGETS, PI_TARGETS, color='grey', lw=0.9, ls='--', label='$\\Pi=\\Pi^*$')
+ax2.set_xlabel('Inflation target $\\Pi^*$'); ax2.set_ylabel('Equilibrium $\\Pi$')
+ax2.set_title('Inflation — pinned below target'); ax2.legend(fontsize=8)
+for ax in (ax1, ax2):
+    ax.text(0.5, 0.05,
+            'ZLB binds ($A=0$) — $\\Pi^*$ irrelevant to actual outcomes',
+            transform=ax.transAxes, ha='center', fontsize=8,
+            bbox=dict(boxstyle='round,pad=0.3', facecolor='lightyellow',
+                      edgecolor='grey', alpha=0.9))
+plt.tight_layout()
+plt.show()
+```
+
+## Conclusion
+
+Lu (2015) shows that rational bubbles are not merely destabilizing
+pathologies: in a secular stagnation economy they can serve as a
+coordination device that absorbs excess saving and restores full
+employment. The welfare case for tolerating or even engineering
+such bubbles depends critically on their stability, which is
+fragile to adverse shocks to borrowing constraints or income.
+
+---
+*Replication by [your name]. All code at github.com/[your-repo].
+Parameters from Eggertsson & Mehrotra (2014) Table 1.*
