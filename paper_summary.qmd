@@ -1,7 +1,7 @@
 ---
 title: "Bubbles in a Secular Stagnation Economy"
 subtitle: "An Abridged Model Replication"
-author: "Replication notebook"
+author: "Jason Lu"
 format:
   html:
     self-contained: true
@@ -299,7 +299,8 @@ such bubbles depends critically on their stability, which is
 fragile to adverse shocks to borrowing constraints or income.
 
 ---
-*Replication by Jason Lu. All code at github.com/bubble_secstag.
+*Replication by Jason Lu. All code available at
+https://github.com/jasonzhixinglu/bubble_secstag.
 Parameters from Eggertsson & Mehrotra (2014) Table 1.*
 
 ## References
