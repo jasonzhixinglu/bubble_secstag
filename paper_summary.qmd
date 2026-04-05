@@ -39,7 +39,7 @@ permanently depresses the natural rate of interest below zero,
 trapping the economy at the zero lower bound. Lu (2015) extends
 this framework to show that a rational asset price bubble can
 restore the natural rate, raise output, and re-anchor inflation —
-but only if the bubble is small enough to remain sustainable.
+but at the risk of unsustainability.
 
 ## Model
 
@@ -70,10 +70,6 @@ $$
 0 \leq A \leq \bar{A}, \qquad
 \bar{A} = \frac{\beta Y_m - (1+2\beta)D}{1+\beta}
 $$
-
-Note: the numerator uses $(1+2\beta)$, not $(2+\beta)$ as
-misprinted in some versions of Lu (2015). This correction is
-derived from the full loan market clearing condition with bubble.
 
 ### Production side
 
@@ -305,3 +301,18 @@ fragile to adverse shocks to borrowing constraints or income.
 ---
 *Replication by [your name]. All code at github.com/[your-repo].
 Parameters from Eggertsson & Mehrotra (2014) Table 1.*
+
+## References
+
+Eggertsson, G. B. and Mehrotra, N. R. (2014). "A Model of
+Secular Stagnation." *NBER Working Paper 20574.*
+
+Lu, J. (2015). "Bubbles in a Secular Stagnation Economy."
+University of Cambridge. First version: August 2015,
+last edited: March 2017.
+
+Tirole, J. (1985). "Asset Bubbles and Overlapping Generations."
+*Econometrica*, 53(5): 1071–1100.
+
+Summers, L. (2013). "Why Stagnation Might Prove to Be the New
+Normal." *Financial Times*, December 15.
