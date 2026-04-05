@@ -1,6 +1,6 @@
 ---
 title: "Bubbles in a Secular Stagnation Economy"
-subtitle: "A succinct replication of Lu (2015) extending Eggertsson & Mehrotra (2014)"
+subtitle: "An Abridged Model Replication"
 author: "Replication notebook"
 format:
   html:
