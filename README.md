@@ -36,28 +36,64 @@ at the ZLB.
 ## Repository structure
 
 ```
-secular-stagnation-bubbles/
+bubble_secstag/
 ├── src/
 │   ├── __init__.py
-│   ├── endowment_model.py      # Layer 1: loan market equilibrium, Proposition 1
-│   ├── production_model.py     # Layer 2: AS/AD, Proposition 2, ZLB dynamics
-│   ├── stability.py            # Layer 3: bubble stability, policy analysis
-│   ├── calibration.py          # Parameter values
-│   └── plots.py                # All figures
+│   ├── calibration.py          # EM (2014) Table 1 parameter values
+│   ├── endowment_model.py      # Layer 1: loan market, natural rate, bubble bound
+│   ├── production_model.py     # Layer 2: AS/AD curves, ZLB, equilibrium solver
+│   └── stability.py            # Layer 3: bubble stability, PAYG, monetary policy
 ├── notebooks/
-│   ├── 01_endowment_economy.ipynb
-│   ├── 02_production_economy.ipynb
-│   └── 03_stability_and_policy.ipynb
-├── figures/                    # Output charts
+│   ├── 01_endowment_economy.ipynb   # Loan market diagrams, bubble effects (EM Fig 1)
+│   ├── 02_production_economy.ipynb  # AS/AD diagrams (EM Fig 2–3, Lu Fig 3)
+│   └── 03_stability_and_policy.ipynb # Stability margin, critical shocks, PAYG
+├── figures/                    # Output charts (PDF and PNG)
 ├── requirements.txt
 └── README.md
 ```
+
+## Installation and usage
+
+```bash
+git clone https://github.com/jasonzhixinglu/bubble_secstag.git
+cd bubble_secstag
+pip install -r requirements.txt
+jupyter notebook
+```
+
+Then open any notebook under `notebooks/` and run all cells (Kernel → Restart & Run All).
+The notebooks add the repo root to `sys.path` automatically, so no installation of the
+`src` package is required.
+
+A `.devcontainer/devcontainer.json` is provided for one-click setup in GitHub Codespaces
+or VS Code Dev Containers.
+
+## Key results (EM 2014 Table 1 calibration)
+
+| Quantity | Value | Notes |
+|----------|-------|-------|
+| β (discount factor) | 0.77 | EM Table 1 |
+| D_H (collateral limit) | 0.28 | Pre-shock |
+| D_L (post-deleveraging) | 0.259 | 7.5% tightening |
+| g (population growth) | 0.20 | Per OLG period |
+| A_max at D_L | 0.0634 | Max sustainable bubble |
+| r^f at D_H (fundamental) | +7.3% | Normal regime |
+| r^f at D_L (fundamental, no bubble) | −3.6% | Secular stagnation |
+| Equilibrium Y at D_H | 1.000 (Y^f) | Full employment |
+| Equilibrium Pi at D_H | 1.094 | Above target |
+| Equilibrium Y at D_L, A=0 | 0.918 | Below potential |
+| Equilibrium Pi at D_L, A=0 | 0.923 | Deflation |
+| Bubble restoration (A = A_max/2) | Y=1.000, Pi=1.010 | Full employment restored |
 
 ## Key equations
 
 Loan market equilibrium (endowment economy, with bubble):
 
-    1 + r_t = (1 + g) * D / [ beta/(1+beta) * (Y - D) - A ]
+    1 + r = (1 + g) * D / [ beta/(1+beta) * (Y_m - D) - A ]
+
+Bubble upper bound (Proposition 1):
+
+    A_max = (beta * Y_m - (1 + 2*beta) * D) / (1 + beta)
 
 Aggregate demand (ZLB binding, i = 0):
 
@@ -65,15 +101,28 @@ Aggregate demand (ZLB binding, i = 0):
 
 Aggregate supply (wage norm binding, Pi < 1):
 
-    gamma/Pi = 1 - (1-gamma) * (Y/Y^n)^((1-alpha)/alpha)
+    gamma/Pi = 1 - (1-gamma) * (Y/Y^f)^((1-alpha)/alpha)
 
 Natural rate of interest:
 
-    r^n = (1+g)*D / [ beta/(1+beta) * (Y^n - D) - A ] - 1
+    r^n = (1+g)*D / [ beta/(1+beta) * (Y^f - D) - A ] - 1
+
+## Known deviations from the paper
+
+**Bubble upper bound formula** (`src/endowment_model.py`):
+The formula given in Lu (2015) Proposition 1 is sometimes cited as
+`(beta*Y_m - (2+beta)*D) / (1+beta)`. This is incorrect. The correct
+derivation — setting loan supply equal to loan demand at r = g — gives:
+
+    A_max = beta/(1+beta) * (Y_m - D) - D
+           = (beta * Y_m - (1 + 2*beta) * D) / (1 + beta)
+
+The coefficient on D is `(1 + 2*beta)`, not `(2 + beta)`. The two
+coincide only when beta = 1. This replication uses the corrected formula.
 
 ## References
 
-- Lu, J. (2015). Bubbles in a Secular Stagnation Economy. University of Cambridge. (First version August 2015; this replication uses the March 2017 draft.)
+- Lu, J. (2015). Bubbles in a Secular Stagnation Economy. University of Cambridge.
 - Eggertsson, G. B. and Mehrotra, N. R. (2014). A Model of Secular Stagnation. NBER WP 20574.
-- Tirole, J. (1985). Asset Bubbles and Overlapping Generations. Econometrica, 53(5), 1071-1100.
-- Gali, J. (2014). Monetary Policy and Rational Asset Price Bubbles. AER, 104(3), 721-752.
+- Tirole, J. (1985). Asset Bubbles and Overlapping Generations. Econometrica, 53(5), 1071–1100.
+- Galí, J. (2014). Monetary Policy and Rational Asset Price Bubbles. AER, 104(3), 721–752.
