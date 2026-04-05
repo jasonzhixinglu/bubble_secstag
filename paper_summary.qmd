@@ -299,7 +299,7 @@ such bubbles depends critically on their stability, which is
 fragile to adverse shocks to borrowing constraints or income.
 
 ---
-*Replication by [your name]. All code at github.com/[your-repo].
+*Replication by Jason Lu. All code at github.com/bubble_secstag.
 Parameters from Eggertsson & Mehrotra (2014) Table 1.*
 
 ## References
