@@ -9,7 +9,9 @@ format:
     toc-depth: 3
     number-sections: true
     theme: cosmo
-    math: mathjax
+    code-fold: true
+    code-summary: "Show code"
+    output-file: index.html
 jupyter: python3
 ---
 
