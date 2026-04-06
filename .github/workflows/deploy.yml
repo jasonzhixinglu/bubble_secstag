@@ -26,12 +26,12 @@ jobs:
         uses: quarto-dev/quarto-actions/setup@v2
 
       - name: Render paper_summary.qmd
-        run: quarto render paper_summary.qmd
+        run: quarto render paper_summary.qmd --output-dir docs
 
-      - name: Deploy to GitHub Pages
-        uses: quarto-dev/quarto-actions/publish@v2
-        with:
-          target: gh-pages
-          path: .
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit and push docs/
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add docs/
+          git commit -m "Render Quarto doc [skip ci]" || echo "Nothing to commit"
+          git push
