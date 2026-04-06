@@ -211,9 +211,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-## Stability and Policy
-
-### Critical shock thresholds
+## Stability
 
 The bubble is fragile. A sufficiently large adverse shock to $D$
 or $Y_m$ causes the bubble to violate the sustainability condition,
