@@ -105,8 +105,6 @@ $$
 
 ## Secular Stagnation
 
-### The collateral shock
-
 A tightening of the borrowing constraint from $D_H$ to $D_L$
 permanently reduces the natural rate. With EM (2014) Table 1
 parameters:
@@ -165,8 +163,6 @@ plt.show()
 ```
 
 ## Bubble Restoration
-
-### Proposition 2 (Lu 2015)
 
 A bubble $A \in (0, \bar{A}]$ raises the natural rate by absorbing
 excess saving. At $A = \bar{A}$ the natural rate is exactly zero
