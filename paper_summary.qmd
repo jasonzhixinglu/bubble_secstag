@@ -247,12 +247,14 @@ plt.show()
 
 ## Conclusion
 
-Lu (2015) shows that rational bubbles are not merely destabilizing
-pathologies: in a secular stagnation economy they can serve as a
-coordination device that absorbs excess saving and restores full
-employment. The welfare case for tolerating or even engineering
-such bubbles depends critically on their stability, which is
-fragile to adverse shocks to borrowing constraints or income.
+Lu (2015) shows that a rational bubble can fix the secular stagnation
+problem by absorbing excess saving, raising the natural rate, and
+shifting AD far enough right that the economy reaches full employment.
+The size of the bubble needed is bounded by the saving capacity of
+the middle-aged, and a bubble near that bound is close to collapse.
+If the bubble does collapse — due to a fall in income or a tightening
+of borrowing constraints — the natural rate drops back below zero,
+the ZLB binds again, and the economy returns to stagnation.
 
 ---
 *Replication by Jason Lu. All code available at
