@@ -173,20 +173,15 @@ bubble_cases = [
     (A_max/2,   'forestgreen', 'C*', r'$A=\bar{A}/2$'),
     (A_max,     'mediumpurple','C',  r'$A=\bar{A}$'),
 ]
-PI_ZLB    = np.linspace(GAMMA + 0.001, 1.05, 400)
-PI_TAYLOR = np.linspace(PI_K, 1.25, 300)
-coeff_zlb = (1 + BETA) / BETA
+PI_GRID = np.linspace(0.82, 1.25, 500)
 
 fig, ax = plt.subplots(figsize=(7, 5))
-AS_def    = aggregate_supply(PI_ZLB[PI_ZLB < 1.0],   Y_f, GAMMA, ALPHA)
-AS_taylor = aggregate_supply(PI_TAYLOR, Y_f, GAMMA, ALPHA)
-ax.plot(AS_def,    PI_ZLB[PI_ZLB < 1.0], color='steelblue', lw=2, label='AS')
-ax.plot(AS_taylor, PI_TAYLOR,             color='steelblue', lw=2, ls='--')
-AD_tr_shared = aggregate_demand(PI_TAYLOR, D_L, G, BETA, PHI_PI, PI_STAR, I_STAR)
-ax.plot(AD_tr_shared, PI_TAYLOR, color='dimgrey', lw=2, label='AD (Taylor, all $A$)')
+AS_vals_b = aggregate_supply(PI_GRID, Y_f, GAMMA, ALPHA)
+ax.plot(AS_vals_b[PI_GRID < 1.0],  PI_GRID[PI_GRID < 1.0],  color='steelblue', lw=2, label='AS')
+ax.plot(AS_vals_b[PI_GRID >= 1.0], PI_GRID[PI_GRID >= 1.0], color='steelblue', lw=2, ls='--')
 for A, color, pt, label in bubble_cases:
-    AD_zlb = D_L + coeff_zlb * (1 + G) * D_L * PI_ZLB + coeff_zlb * A
-    ax.plot(AD_zlb, PI_ZLB, color=color, lw=2, ls=':', label=f'AD ZLB {label}')
+    AD = aggregate_demand(PI_GRID, D_L, G, BETA, PHI_PI, PI_STAR, I_STAR, A_bubble=A)
+    ax.plot(AD, PI_GRID, color=color, lw=2, label=f'AD {label}')
     eq_b = find_equilibrium(D_L, G, BETA, PHI_PI, PI_STAR, I_STAR,
                             GAMMA, ALPHA, L_BAR, A_bubble=A)
     ax.scatter([eq_b['Y']], [eq_b['Pi']], color=color, zorder=5, s=70)
@@ -249,45 +244,6 @@ plt.tight_layout()
 plt.show()
 ```
 
-### PAYG transfer as alternative
-
-A pay-as-you-go transfer $\tau$ from middle-aged to old can also
-raise the natural rate, but requires a larger intervention than
-a bubble of equivalent size to achieve the same output effect.
-
-### Monetary policy ineffectiveness
-
-At the ZLB, the central bank cannot restore output by raising its
-inflation target $\pi^*$. Both $Y$ and $\pi$ are pinned by the
-structural equilibrium, not by the policy rule.
-```{python}
-#| echo: false
-#| fig-cap: "Monetary policy ineffectiveness at ZLB (Lu 2015 Section 4)"
-PI_TARGETS = np.linspace(1.00, 1.06, 20)
-Y_eq  = np.array([find_equilibrium(D_L, G, BETA, PHI_PI, p, I_STAR,
-                                    GAMMA, ALPHA, L_BAR)['Y'] for p in PI_TARGETS])
-Pi_eq = np.array([find_equilibrium(D_L, G, BETA, PHI_PI, p, I_STAR,
-                                    GAMMA, ALPHA, L_BAR)['Pi'] for p in PI_TARGETS])
-
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4))
-ax1.plot(PI_TARGETS, Y_eq, color='steelblue', lw=2, marker='o', ms=4)
-ax1.axhline(Y_f, color='grey', lw=0.9, ls='-.', label=f'$Y^f={Y_f}$')
-ax1.set_ylim(0.88, 1.05)
-ax1.set_xlabel('Inflation target $\\Pi^*$'); ax1.set_ylabel('Equilibrium $Y$')
-ax1.set_title('Output — flat at ZLB'); ax1.legend(fontsize=8)
-ax2.plot(PI_TARGETS, Pi_eq, color='darkorange', lw=2, marker='o', ms=4)
-ax2.plot(PI_TARGETS, PI_TARGETS, color='grey', lw=0.9, ls='--', label='$\\Pi=\\Pi^*$')
-ax2.set_xlabel('Inflation target $\\Pi^*$'); ax2.set_ylabel('Equilibrium $\\Pi$')
-ax2.set_title('Inflation — pinned below target'); ax2.legend(fontsize=8)
-for ax in (ax1, ax2):
-    ax.text(0.5, 0.05,
-            'ZLB binds ($A=0$) — $\\Pi^*$ irrelevant to actual outcomes',
-            transform=ax.transAxes, ha='center', fontsize=8,
-            bbox=dict(boxstyle='round,pad=0.3', facecolor='lightyellow',
-                      edgecolor='grey', alpha=0.9))
-plt.tight_layout()
-plt.show()
-```
 
 ## Conclusion
 

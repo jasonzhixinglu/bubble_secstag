@@ -211,12 +211,17 @@ def aggregate_demand(
 
     Normal regime (Pi >= Pi_kink):
 
-        Y = D + (1+beta)/beta * (1+g)*D * Gamma_star / Pi^{phi_pi-1}  (26/29)
+        Y = D + (1+beta)/beta * (1+g)*D * Gamma_star / Pi^{phi_pi-1}
+              + (1+beta)/beta * A_bubble                               (26/29)
 
     ZLB regime (Pi < Pi_kink):
 
         Y = D + (1+beta)/beta * (1+g)*D * Pi
               + (1+beta)/beta * A_bubble                               (27/30)
+
+    The bubble term is additive in both regimes because it enters the
+    underlying aggregate demand equation before any policy rule is
+    substituted.
     """
     scalar_input = np.ndim(Pi) == 0
     Pi = np.atleast_1d(np.asarray(Pi, dtype=float))
@@ -224,9 +229,10 @@ def aggregate_demand(
     Pi_k = pi_kink(i_star, phi_pi, Pi_star)
     Gamma_star = Pi_star ** phi_pi / (1.0 + i_star)
     coeff = (1.0 + beta) / beta * (1.0 + g) * D
+    bubble_term = (1.0 + beta) / beta * A_bubble
 
-    Y_normal = D + coeff * Gamma_star / Pi ** (phi_pi - 1.0)
-    Y_zlb    = D + coeff * Pi + (1.0 + beta) / beta * A_bubble
+    Y_normal = D + coeff * Gamma_star / Pi ** (phi_pi - 1.0) + bubble_term
+    Y_zlb    = D + coeff * Pi + bubble_term
 
     Y = np.where(Pi >= Pi_k, Y_normal, Y_zlb)
 
