@@ -277,7 +277,7 @@ Eggertsson, G. B. and Mehrotra, N. R. (2014). "A Model of
 Secular Stagnation." *NBER Working Paper 20574.*
 
 Lu, J. (2015). "Bubbles in a Secular Stagnation Economy."
-University of Cambridge. First version: August 2015,
+University of Cambridge Working Paper. First version: August 2015,
 last edited: March 2017.
 
 Tirole, J. (1985). "Asset Bubbles and Overlapping Generations."
